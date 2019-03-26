@@ -1,14 +1,13 @@
-(function webpackUniversalModuleDefinition(root, factory) {
-	if(typeof exports === 'object' && typeof module === 'object')
-		module.exports = factory();
-	else if(typeof define === 'function' && define.amd)
-		define([], factory);
-	else {
-		var a = factory();
-		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
-	}
-})(window, function() {
-return /******/ (function(modules) { // webpackBootstrap
+
+(function (factory) {
+  if (typeof module === 'object' && typeof module.exports !== "undefined") {
+      module.exports = factory;
+  } else {
+      var FusionCharts = window.FusionCharts;
+      factory(FusionCharts);
+  }
+}(function (FusionCharts) {
+/******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -96,6 +95,21 @@ return /******/ (function(modules) { // webpackBootstrap
 /************************************************************************/
 /******/ ([
 /* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _extension = __webpack_require__(1);
+
+var _extension2 = _interopRequireDefault(_extension);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+FusionCharts.addDep(_extension2['default']);
+
+/***/ }),
+/* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -513,5 +527,7 @@ var extension = {
 exports['default'] = extension;
 
 /***/ })
-/******/ ])["default"];
-});
+/******/ ]);
+}));
+
+//# sourceMappingURL=fusioncharts.extension.customize-data-labels-at-dataset-level.js.map

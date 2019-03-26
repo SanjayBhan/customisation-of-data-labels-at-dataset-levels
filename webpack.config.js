@@ -1,6 +1,16 @@
 const path = require('path'),
   fs = require('fs-extra'),
+  WrapperPlugin = require('wrapper-webpack-plugin'),
   UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+
+function getBabelPlugins () {
+  return [
+    ['syntax-dynamic-import'],
+    ['transform-es3-member-expression-literals'],
+    ['transform-es3-property-literals'],
+    ['transform-proto-to-assign']
+  ];
+};
 
 let moduleConfig = {
   rules: [
@@ -24,36 +34,50 @@ let moduleConfig = {
   ]
 };
 
-function getBabelPlugins () {
-  return [
-    ['syntax-dynamic-import'],
-    ['transform-es3-member-expression-literals'],
-    ['transform-es3-property-literals'],
-    ['transform-proto-to-assign']
-  ];
-};
+let moduleWrapperHeader = `
+(function (factory) {
+  if (typeof module === 'object' && typeof module.exports !== "undefined") {
+      module.exports = factory;
+  } else {
+      var FusionCharts = window.FusionCharts;
+      factory(FusionCharts);
+  }
+}(function (FusionCharts) {
+`,
+  moduleWrapperFooter = `
+}));
+`;
 
-function getWebpackOptimizations () {
-  let optimization = {};
+function getPlugins(isSource, isSample) {
+  var plugins = [];
 
-  optimization.minimize = true;
-  optimization.minimizer = [
-    new UglifyJsPlugin({
-      cache: true,
-      parallel: true,
-      sourceMap: true,
-      uglifyOptions: {
-        ecma: 5,
-        ie8: true,
-        mangle: false,
-        compress: false,
-        keep_classnames: true,
-        keep_fnames: true
-      }
-    })
-  ];
-  return optimization;
-};
+  if (!isSample) {
+    plugins.push(new WrapperPlugin({
+      test: /\.js$/,
+      header: moduleWrapperHeader,
+      footer: moduleWrapperFooter
+    }));
+  }
+
+  if (!isSource) {
+    plugins.push(
+      new UglifyJsPlugin({
+        cache: true,
+        parallel: true,
+        sourceMap: true,
+        uglifyOptions: {
+          ecma: 5,
+          ie8: true,
+          mangle: true,
+          compress: false,
+          keep_classnames: true,
+          keep_fnames: false
+        }
+      })
+    );
+  }
+  return plugins;
+}
 
 module.exports = env => {
   if (env === 'sample') {
@@ -63,22 +87,22 @@ module.exports = env => {
         filename: 'bundle.js',
         path: path.resolve(__dirname, 'sample/js')
       },
-      optimization: getWebpackOptimizations(),
+      plugins: getPlugins(false, true),
+      module: moduleConfig,
       mode: 'none'
     }];
   } else {
     fs.emptyDirSync('./es/');
     fs.copySync('./src/extension.js', './es/index.js');
-    fs.emptyDirSync('./browser/');
+    fs.emptyDirSync('./dist/');
     return [{
       entry: './src/index.js',
       output: {
         filename: 'fusioncharts.extension.customize-data-labels-at-dataset-level.js',
-        path: path.resolve(__dirname, 'browser'),
-        libraryTarget: 'umd',
-        libraryExport: 'default'
+        path: path.resolve(__dirname, 'dist')
       },
       externals: /^(fusioncharts)$/i,
+      plugins: getPlugins(true),
       module: moduleConfig,
       mode: 'none',
       devtool: 'source-map'
@@ -86,26 +110,13 @@ module.exports = env => {
       entry: './src/index.js',
       output: {
         filename: 'fusioncharts.extension.customize-data-labels-at-dataset-level.min.js',
-        path: path.resolve(__dirname, 'browser'),
-        libraryTarget: 'umd',
-        libraryExport: 'default'
+        path: path.resolve(__dirname, 'dist')
       },
       externals: /^(fusioncharts)$/i,
+      plugins: getPlugins(false),
       module: moduleConfig,
       mode: 'none',
-      devtool: 'source-map',
-      optimization: getWebpackOptimizations()
-    }, {
-      entry: './src/extension.js',
-      output: {
-        filename: 'index.js',
-        path: path.resolve(__dirname, './'),
-        libraryTarget: 'umd',
-        libraryExport: 'default'
-      },
-      externals: /^(fusioncharts)$/i,
-      module: moduleConfig,
-      mode: 'none'
+      devtool: 'source-map'
     }];
   }
 };

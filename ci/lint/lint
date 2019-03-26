@@ -1,0 +1,32 @@
+#!/bin/bash
+# ----------------------------------------------------------------------------------------------------------------------
+# Script description will be here!
+# ----------------------------------------------------------------------------------------------------------------------
+
+# Stop on first error
+set -e
+
+path=./src/;
+if [ "$file" != "" ]; then
+	path="${file}";
+fi
+
+# Stitch the files before lint
+# ./develop/ci/stitch/stitch;
+
+# Being creative!
+echo -e "\033[33m";
+echo "  _    _     _   _           ";
+echo " | |  (_)_ _| |_(_)_ _  __ _ ";
+echo " | |__| | ' \  _| | ' \/ _\` |";
+echo " |____|_|_||_\__|_|_||_\__, |";
+echo "                       |___/ ";
+echo -e "\033[0m";
+
+# Run test on source files and test specs
+echo -e "\neslint version: `eslint --version`\n";
+
+eslint $path --quiet --cache --config ./.eslint-override.js;
+
+# Notify
+echo -e "\033[32mlint passed! Celebrate.\033[0m\n";
